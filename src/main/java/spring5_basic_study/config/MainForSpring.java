@@ -9,15 +9,16 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import spring5_basic_study.di.ChangePasswordService;
 import spring5_basic_study.di.DuplicateMemberException;
-import spring5_basic_study.di.MemberDao;
+import spring5_basic_study.di.MemberInfoPrinter;
+import spring5_basic_study.di.MemberListPrinter;
 import spring5_basic_study.di.MemberNotFoundException;
 import spring5_basic_study.di.MemberRegisterService;
 import spring5_basic_study.di.RegisterRequest;
+import spring5_basic_study.di.VersionPrinter;
 import spring5_basic_study.di.WrongIdPasswordException;
 
-public class MainForAssembler {
+public class MainForSpring {
 	private static ApplicationContext ctx = null;
-
 
 	public static void main(String[] args) throws IOException {
 		ctx = new AnnotationConfigApplicationContext(AppCtx.class);
@@ -38,8 +39,16 @@ public class MainForAssembler {
 					processChangeCommand(command.split(" "));
 					continue;
 				}
-				if (command.startsWith("list")) {
-					processListCommand(command.split(" "));
+				if (command.equalsIgnoreCase("list")) {
+					processListCommand();
+					continue;
+				}
+				if (command.startsWith("info ")) {
+					processInfoCommand(command.split(" "));
+					continue;
+				}
+				if (command.equalsIgnoreCase("version")) {
+					processVersionCommand();
 					continue;
 				}
 				printHelp();
@@ -47,13 +56,23 @@ public class MainForAssembler {
 		}
 	}
 
-	private static void processListCommand(String[] arg) {
-		if (arg.length != 1) {
+	private static void processVersionCommand() {
+		VersionPrinter versionPrinter = ctx.getBean("versionPrinter", VersionPrinter.class);
+		versionPrinter.print();
+	}
+
+	private static void processInfoCommand(String[] arg) {
+		if (arg.length != 2) {
 			printHelp();
 			return;
 		}
-		MemberDao dao = ctx.getBean("memberDao", MemberDao.class);
-		dao.showList();
+		MemberInfoPrinter infoPrinter = ctx.getBean("infoPrinter", MemberInfoPrinter.class);
+		infoPrinter.printMemberInfo(arg[1]);
+	}
+
+	private static void processListCommand() {
+		MemberListPrinter listPrinter = ctx.getBean("listPrinter", MemberListPrinter.class);
+		listPrinter.printAll();
 	}
 
 	private static void processNewCommand(String[] arg) {
@@ -102,6 +121,8 @@ public class MainForAssembler {
 		System.out.println("new 이메일 이름 암호 암호확인");
 		System.out.println("change 이메일 현재비번 변경비번");
 		System.out.println("list");
+		System.out.println("info 이메일");
+		System.out.println("version");
 		System.out.println("--------------------------------------");
 	}
 
